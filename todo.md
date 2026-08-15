@@ -1,6 +1,6 @@
-# Human Takeover Enhancement Tasks
+# Human Takeover Resolution Tracking Tasks
 
-- [x] Define the visible AI-generated hand-off summary and human-agent takeover states.
-- [x] Add a secure customer re-authentication prompt and protected-session status to the inspection workflow.
-- [x] Build the human-agent response composer with channel continuity, suggested context, and resolution actions.
-- [x] Verify the interaction flow and production build before delivery.
+- [x] Define the in-composer agent-note and resolution-disposition data needed for a complete audit trail.
+- [x] Add a calm progress state and status feedback while a human agent accepts a hand-off.
+- [x] Add a client-side audit PDF export that contains the AI hand-off brief and full conversation history.
+- [x] Verify the enhanced workflow and production build before delivery.

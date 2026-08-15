@@ -77,3 +77,5 @@ Use the supplied FinCare primary lockup and supplied symbol-only mark without mo
 - Keep the desktop Ink Navy command rail visibly persistent across workspaces, with the supplied FinCare lockup and a FinCare Blue active-location edge.
 - Use purpose-built operational evidence wells—masked context, retrieval confidence, safety controls, targets, and the supplied FinCare symbol—rather than generic AI or glass decoration in workspace headers.
 - Reserve Care Cyan for FinCare AI status, support context, retrieval confidence, and intelligence signals; retain FinCare Blue for primary actions and core data.
+- Keep conversation inspection intentionally asymmetric: the evidence timeline is primary, while customer and secure-session panels are quieter supporting context.
+- Make the current command-rail location unambiguous with a visible Care Cyan edge over the FinCare Blue active state, including within a detail workflow.
