@@ -16,6 +16,7 @@ import {
 import { getActiveBankForUser, getDb, writeBankAuditEvent } from "../db";
 import { invokeLLM } from "../_core/llm";
 import { storagePut } from "../storage";
+import { normalizeBankSlug } from "../../shared/bankSlug";
 import { protectedProcedure, router } from "../_core/trpc";
 
 const bankRoleSchema = z.enum([
@@ -53,24 +54,28 @@ const configInput = z.object({
 });
 
 export const bankPortalRouter = router({
-  context: protectedProcedure.query(async ({ ctx }) => requireBankContext(ctx.user.id)),
+  context: protectedProcedure.query(async ({ ctx }) => getActiveBankForUser(ctx.user.id) ?? null),
 
   bootstrap: protectedProcedure.input(z.object({
     bankName: z.string().trim().min(2).max(160),
-    bankSlug: z.string().trim().toLowerCase().regex(/^[a-z0-9-]{2,100}$/),
+    bankSlug: z.string().trim().min(1).max(255),
   })).mutation(async ({ ctx, input }) => {
     const existingMembership = await getActiveBankForUser(ctx.user.id);
     if (existingMembership) {
       throw new TRPCError({ code: "CONFLICT", message: "This user already has an active bank environment." });
     }
+    const normalizedSlug = normalizeBankSlug(input.bankSlug);
+    if (normalizedSlug.length < 2) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Use at least two letters or numbers in the workspace address." });
+    }
     const db = await getDb();
     if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-    const slugExists = await db.select({ id: banks.id }).from(banks).where(eq(banks.slug, input.bankSlug)).limit(1);
+    const slugExists = await db.select({ id: banks.id }).from(banks).where(eq(banks.slug, normalizedSlug)).limit(1);
     if (slugExists[0]) throw new TRPCError({ code: "CONFLICT", message: "That bank workspace address is already in use." });
 
     await db.transaction(async (tx) => {
-      await tx.insert(banks).values({ name: input.bankName, slug: input.bankSlug });
-      const created = await tx.select({ id: banks.id }).from(banks).where(eq(banks.slug, input.bankSlug)).limit(1);
+      await tx.insert(banks).values({ name: input.bankName, slug: normalizedSlug });
+      const created = await tx.select({ id: banks.id }).from(banks).where(eq(banks.slug, normalizedSlug)).limit(1);
       const bankId = created[0]?.id;
       if (!bankId) throw new Error("Bank environment could not be created");
       await tx.insert(bankMemberships).values({ bankId, userId: ctx.user.id, role: "bank_owner", status: "active" });

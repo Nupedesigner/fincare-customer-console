@@ -7,6 +7,7 @@ import { AIChatBox, type Message as AIMessage } from "@/components/AIChatBox";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { startLogin } from "@/const";
+import { needsBankEnvironment, normalizeBankSlug } from "@shared/bankSlug";
 import {
   Activity, AlertTriangle, ArrowUpRight, Bell, BookOpen, Bot, Check, CheckCircle2,
   ChevronDown, CircleHelp, Clock3, Database, Download, FileText, Filter, Gauge,
@@ -358,8 +359,10 @@ function BankEnvironmentSetup() {
     },
   });
   const createEnvironment = () => {
-    const normalizedSlug = bankSlug.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-    if (!bankName.trim() || !normalizedSlug) {
+    const rawSlug = bankSlug.trim() || bankName.trim();
+    let normalizedSlug = normalizeBankSlug(rawSlug);
+    if (normalizedSlug.length === 1) normalizedSlug = `${normalizedSlug}-bank`;
+    if (!bankName.trim() || normalizedSlug.length < 2) {
       toast("Add your bank details", { description: "Enter a bank name and a short workspace address to continue." });
       return;
     }
@@ -374,6 +377,6 @@ export default function Home() {
   if (loading) return <div className="flex min-h-screen items-center justify-center bg-[#f4f8ff]"><Loader2 className="h-6 w-6 animate-spin text-[#0866f5]" /></div>;
   if (!user) return <div className="flex min-h-screen items-center justify-center bg-[#f4f8ff] px-4"><div className="w-full max-w-md rounded-2xl border border-[#dce8f8] bg-white p-8 text-center shadow-[0_18px_60px_rgba(7,26,53,.08)]"><img src={logo} alt="FinCare" className="mx-auto h-10 w-auto" /><h1 className="mt-7 text-2xl font-bold tracking-[-.035em] text-[#071a35]">Sign in to your bank portal</h1><p className="mt-3 text-sm leading-6 text-slate-600">FinCare Bank Portal access is restricted to authorised bank users. Sign in to configure and operate your bank’s environment.</p><button onClick={() => startLogin()} className="mt-7 w-full rounded-lg bg-[#0866f5] px-4 py-3 text-sm font-semibold text-white hover:bg-[#075ddd]">Continue securely</button></div></div>;
   if (contextQuery.isLoading) return <div className="flex min-h-screen items-center justify-center bg-[#f4f8ff]"><Loader2 className="h-6 w-6 animate-spin text-[#0866f5]" /></div>;
-  if (contextQuery.isError) return <BankEnvironmentSetup />;
+  if (needsBankEnvironment(contextQuery.data, contextQuery.isError)) return <BankEnvironmentSetup />;
   return <PortalShell />;
 }

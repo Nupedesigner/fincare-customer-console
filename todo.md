@@ -12,3 +12,12 @@
 - [x] Persist production activation through the deployment route and confirm its audit event in the bank workspace.
 - [x] Replace or clearly label remaining integration, channel, and deployment placeholder actions so no visible control implies an unavailable workflow.
 - [x] Show the persisted production activation audit confirmation directly in the Deploy FinCare workspace after activation.
+- [x] Normalize and validate the workspace address before the bank-environment setup mutation so valid bank names do not produce a slug-format error.
+- [x] Prevent bank-scoped pages from issuing tenant queries until an active bank environment exists, and route unassigned users to setup.
+- [x] Verify workspace creation followed by direct access to Integrations and other tenant-scoped pages.
+- [x] Verify an existing bank membership resolves for the authenticated user and direct tenant routes load without setup fallback.
+- [x] Add an automated coverage check for workspace-address normalization and unassigned-bank context behaviour.
+- [x] Verify a successful active-bank context response for an authenticated bank user through the application API.
+- [x] Add an application-level test covering unassigned setup fallback and an existing bank context with direct tenant-route access.
+- [x] Verify a real authenticated bankPortal context API response returns a non-null active bank membership.
+- [x] Capture an application-level tenant-route load after authenticated context resolution, including the existing-bank state.
