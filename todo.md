@@ -21,3 +21,10 @@
 - [x] Add an application-level test covering unassigned setup fallback and an existing bank context with direct tenant-route access.
 - [x] Verify a real authenticated bankPortal context API response returns a non-null active bank membership.
 - [x] Capture an application-level tenant-route load after authenticated context resolution, including the existing-bank state.
+- [x] Identify why tRPC requests from the portal receive the HTML application shell rather than a JSON response.
+- [x] Correct API request routing while retaining authenticated tRPC query and mutation behaviour.
+- [x] Verify authenticated API JSON responses and the browser-facing portal workflow after the fix.
+- [x] Verify an authenticated bank-scoped mutation completes successfully through the browser-facing portal after the routing fix.
+- [x] Verify the live portal at the reported from_webdev URL loads authenticated queries without HTML-for-JSON parsing errors.
+- [x] Add regression coverage for unmatched API paths returning JSON rather than SPA HTML.
+- [x] Re-run an authenticated sandbox mutation and capture the completed portal response and diagnostics state after it renders.

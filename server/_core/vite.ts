@@ -6,6 +6,19 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import viteConfig from "../../vite.config";
 
+type ApiFallbackRequest = { originalUrl: string };
+type ApiFallbackResponse = {
+  status: (statusCode: number) => ApiFallbackResponse;
+  json: (payload: { error: string; path: string }) => unknown;
+};
+
+export function sendApiNotFoundJson(req: ApiFallbackRequest, res: ApiFallbackResponse) {
+  return res.status(404).json({
+    error: "API route not found",
+    path: req.originalUrl,
+  });
+}
+
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
@@ -18,6 +31,12 @@ export async function setupVite(app: Express, server: Server) {
     configFile: false,
     server: serverOptions,
     appType: "custom",
+  });
+
+  // Vite can otherwise resolve an unknown API URL through its HTML fallback.
+  // Keep this guard before Vite middleware so API callers always receive JSON.
+  app.use("/api", (req, res) => {
+    return sendApiNotFoundJson(req, res);
   });
 
   app.use(vite.middlewares);
@@ -61,7 +80,10 @@ export function serveStatic(app: Express) {
   app.use(express.static(distPath));
 
   // fall through to index.html if the file doesn't exist
-  app.use("*", (_req, res) => {
+  app.use("*", (req, res) => {
+    if (req.path.startsWith("/api/")) {
+      return sendApiNotFoundJson(req, res);
+    }
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
