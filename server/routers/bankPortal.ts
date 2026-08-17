@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import {
+  administrationRecords,
   agentConfigs,
   auditEvents,
   bankMemberships,
@@ -55,6 +56,9 @@ const configInput = z.object({
   supportedLanguages: z.string().trim().min(2).max(500),
   customerTone: z.string().trim().min(2).max(120),
 });
+
+const administrationModuleSchema = z.enum(["faq", "product", "sdk", "webhook", "environment", "api_log", "queue", "escalation", "organization"]);
+const administrationStatusSchema = z.enum(["draft", "pending", "ready", "active", "review", "disabled", "archived"]);
 
 export const bankPortalRouter = router({
   context: protectedProcedure.query(async ({ ctx }) => getActiveBankForUser(ctx.user.id) ?? null),
@@ -268,6 +272,37 @@ export const bankPortalRouter = router({
       if (!membership[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Membership not found in this bank environment." });
       await db.update(bankMemberships).set({ role: input.role }).where(eq(bankMemberships.id, input.membershipId));
       await writeBankAuditEvent({ bankId: bank.bankId, actorUserId: ctx.user.id, action: "Changed team role", module: "Team", resourceType: "membership", resourceId: String(input.membershipId), detail: input.role });
+      return { success: true };
+    }),
+  }),
+
+  administration: router({
+    list: protectedProcedure.input(z.object({ module: administrationModuleSchema })).query(async ({ ctx, input }) => {
+      const bank = await requireBankContext(ctx.user.id);
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      return db.select().from(administrationRecords).where(and(eq(administrationRecords.bankId, bank.bankId), eq(administrationRecords.module, input.module))).orderBy(desc(administrationRecords.updatedAt));
+    }),
+    create: protectedProcedure.input(z.object({ module: administrationModuleSchema, title: z.string().trim().min(2).max(255), detail: z.string().trim().max(5000).optional(), status: administrationStatusSchema.default("draft") })).mutation(async ({ ctx, input }) => {
+      const bank = await requireBankContext(ctx.user.id);
+      requireOneOfRoles(bank.bankRole, ["bank_owner", "organization_admin", "bank_admin", "ai_manager", "integration_manager", "support_manager"]);
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      const result = await db.insert(administrationRecords).values({ bankId: bank.bankId, module: input.module, title: input.title, detail: input.detail, status: input.status, createdByUserId: ctx.user.id, updatedByUserId: ctx.user.id });
+      const recordId = Number(result[0].insertId);
+      await writeBankAuditEvent({ bankId: bank.bankId, actorUserId: ctx.user.id, action: "Created administration record", module: input.module, resourceType: "administration_record", resourceId: String(recordId), detail: input.title });
+      return { success: true, id: recordId };
+    }),
+    update: protectedProcedure.input(z.object({ id: z.number().int().positive(), title: z.string().trim().min(2).max(255).optional(), detail: z.string().trim().max(5000).optional(), status: administrationStatusSchema.optional() })).mutation(async ({ ctx, input }) => {
+      const bank = await requireBankContext(ctx.user.id);
+      requireOneOfRoles(bank.bankRole, ["bank_owner", "organization_admin", "bank_admin", "ai_manager", "integration_manager", "support_manager"]);
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
+      const record = await db.select().from(administrationRecords).where(and(eq(administrationRecords.id, input.id), eq(administrationRecords.bankId, bank.bankId))).limit(1);
+      if (!record[0]) throw new TRPCError({ code: "NOT_FOUND", message: "Administration record not found in this Qorebank environment." });
+      const { id, ...changes } = input;
+      await db.update(administrationRecords).set({ ...changes, updatedByUserId: ctx.user.id }).where(eq(administrationRecords.id, id));
+      await writeBankAuditEvent({ bankId: bank.bankId, actorUserId: ctx.user.id, action: "Updated administration record", module: record[0].module, resourceType: "administration_record", resourceId: String(id), detail: record[0].title });
       return { success: true };
     }),
   }),

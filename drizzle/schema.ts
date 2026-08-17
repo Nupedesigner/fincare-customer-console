@@ -120,5 +120,19 @@ export const auditEvents = mysqlTable("audit_events", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
+export const administrationRecords = mysqlTable("administration_records", {
+  id: int("id").autoincrement().primaryKey(),
+  bankId: int("bankId").notNull(),
+  module: mysqlEnum("module", ["faq", "product", "sdk", "webhook", "environment", "api_log", "queue", "escalation", "organization"]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  status: mysqlEnum("status", ["draft", "pending", "ready", "active", "review", "disabled", "archived"]).default("draft").notNull(),
+  detail: text("detail"),
+  metadata: text("metadata"),
+  createdByUserId: int("createdByUserId").notNull(),
+  updatedByUserId: int("updatedByUserId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;

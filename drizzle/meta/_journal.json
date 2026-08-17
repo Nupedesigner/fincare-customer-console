@@ -15,6 +15,13 @@
       "when": 1786982366799,
       "tag": "0001_young_diamondback",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1786984186524,
+      "tag": "0002_faulty_inertia",
+      "breakpoints": true
     }
   ]
 }

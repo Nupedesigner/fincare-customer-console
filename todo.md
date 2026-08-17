@@ -1,8 +1,6 @@
-# Managed Identity Guidance Tasks
+# Profile Screen Visual Edit Tasks
 
-- [x] Define the SSO-first activation, recovery, and session-state experience for the FinCare portal.
-- [x] Summarize the material security and compliance benefits of managed identity for Qorebank.
-- [x] Define a staged migration from separate portal passwords with safety controls and rollback criteria.
-- [x] Confirm the SSO activation, recovery, and session-state guidance is saved and ready for review.
-- [x] Confirm the NIST- and OWASP-grounded managed-identity benefits section is included in the deliverable.
-- [x] Confirm the staged password-to-SSO migration, rollback, and support-ownership plan is included in the deliverable.
+- [x] Locate the two requested Profile & access copy paragraphs that were not changed by the visual editor.
+- [x] Remove the identified profile-screen copy while preserving the account details and sign-out control.
+- [x] Verify the rendered profile layout and save a checkpoint.
+- [ ] Save the verified Profile & access copy removal as a new project checkpoint.
