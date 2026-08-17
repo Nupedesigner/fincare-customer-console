@@ -1,30 +1,8 @@
-# FinCare Bank Portal Enhancement Tasks
+# Managed Identity Guidance Tasks
 
-- [x] Reframe the existing application shell as the individual bank’s FinCare environment without replacing its design system.
-- [x] Build bank-controlled agent configuration and clearly separated FinCare-protected policies.
-- [x] Build Knowledge Base, Integrations, Channels, Test Console, and Deploy FinCare workspaces.
-- [x] Adapt conversations, live agents, analytics, team, security, and settings to the bank-tenant experience.
-- [x] Make bank-level data isolation and safe deployment states visible throughout the portal.
-- [x] Verify representative desktop and mobile views and the production build before delivery.
-- [x] Connect My AI Agent fields and save action to the tenant-scoped configuration query and mutation.
-- [x] Connect Knowledge Base, Integrations, Channels, and Deploy FinCare actions to their persisted tenant-scoped queries and mutations.
-- [x] Replace hardcoded conversation, team, security, and audit rows with live tenant-scoped query data and empty states.
-- [x] Persist production activation through the deployment route and confirm its audit event in the bank workspace.
-- [x] Replace or clearly label remaining integration, channel, and deployment placeholder actions so no visible control implies an unavailable workflow.
-- [x] Show the persisted production activation audit confirmation directly in the Deploy FinCare workspace after activation.
-- [x] Normalize and validate the workspace address before the bank-environment setup mutation so valid bank names do not produce a slug-format error.
-- [x] Prevent bank-scoped pages from issuing tenant queries until an active bank environment exists, and route unassigned users to setup.
-- [x] Verify workspace creation followed by direct access to Integrations and other tenant-scoped pages.
-- [x] Verify an existing bank membership resolves for the authenticated user and direct tenant routes load without setup fallback.
-- [x] Add an automated coverage check for workspace-address normalization and unassigned-bank context behaviour.
-- [x] Verify a successful active-bank context response for an authenticated bank user through the application API.
-- [x] Add an application-level test covering unassigned setup fallback and an existing bank context with direct tenant-route access.
-- [x] Verify a real authenticated bankPortal context API response returns a non-null active bank membership.
-- [x] Capture an application-level tenant-route load after authenticated context resolution, including the existing-bank state.
-- [x] Identify why tRPC requests from the portal receive the HTML application shell rather than a JSON response.
-- [x] Correct API request routing while retaining authenticated tRPC query and mutation behaviour.
-- [x] Verify authenticated API JSON responses and the browser-facing portal workflow after the fix.
-- [x] Verify an authenticated bank-scoped mutation completes successfully through the browser-facing portal after the routing fix.
-- [x] Verify the live portal at the reported from_webdev URL loads authenticated queries without HTML-for-JSON parsing errors.
-- [x] Add regression coverage for unmatched API paths returning JSON rather than SPA HTML.
-- [x] Re-run an authenticated sandbox mutation and capture the completed portal response and diagnostics state after it renders.
+- [x] Define the SSO-first activation, recovery, and session-state experience for the FinCare portal.
+- [x] Summarize the material security and compliance benefits of managed identity for Qorebank.
+- [x] Define a staged migration from separate portal passwords with safety controls and rollback criteria.
+- [x] Confirm the SSO activation, recovery, and session-state guidance is saved and ready for review.
+- [x] Confirm the NIST- and OWASP-grounded managed-identity benefits section is included in the deliverable.
+- [x] Confirm the staged password-to-SSO migration, rollback, and support-ownership plan is included in the deliverable.

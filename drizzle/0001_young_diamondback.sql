@@ -1,0 +1,1 @@
+ALTER TABLE `bank_memberships` MODIFY COLUMN `role` enum('bank_owner','organization_admin','bank_admin','ai_manager','integration_manager','support_manager','support_agent','analyst','compliance_officer') NOT NULL;

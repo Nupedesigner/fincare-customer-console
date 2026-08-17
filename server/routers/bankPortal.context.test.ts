@@ -42,4 +42,11 @@ describe("bankPortal.context", () => {
     const result = await appRouter.createCaller(createContext()).bankPortal.context();
     expect(result).toMatchObject({ bankId: 7, bankSlug: "qorebank", bankRole: "bank_admin" });
   });
+
+  it("does not allow a bank user to create an organization from the bank portal", async () => {
+    const caller = appRouter.createCaller(createContext());
+
+    await expect(caller.bankPortal.bootstrap({ bankName: "Qorebank", bankSlug: "qorebank" }))
+      .rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
 });

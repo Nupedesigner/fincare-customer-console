@@ -24,7 +24,7 @@ export const bankMemberships = mysqlTable("bank_memberships", {
   id: int("id").autoincrement().primaryKey(),
   bankId: int("bankId").notNull(),
   userId: int("userId").notNull(),
-  role: mysqlEnum("role", ["bank_owner", "bank_admin", "support_manager", "support_agent", "analyst", "compliance_officer"]).notNull(),
+  role: mysqlEnum("role", ["bank_owner", "organization_admin", "bank_admin", "ai_manager", "integration_manager", "support_manager", "support_agent", "analyst", "compliance_officer"]).notNull(),
   status: mysqlEnum("status", ["active", "disabled", "invited"]).default("active").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

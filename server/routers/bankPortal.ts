@@ -21,7 +21,10 @@ import { protectedProcedure, router } from "../_core/trpc";
 
 const bankRoleSchema = z.enum([
   "bank_owner",
+  "organization_admin",
   "bank_admin",
+  "ai_manager",
+  "integration_manager",
   "support_manager",
   "support_agent",
   "analyst",
@@ -59,49 +62,11 @@ export const bankPortalRouter = router({
   bootstrap: protectedProcedure.input(z.object({
     bankName: z.string().trim().min(2).max(160),
     bankSlug: z.string().trim().min(1).max(255),
-  })).mutation(async ({ ctx, input }) => {
-    const existingMembership = await getActiveBankForUser(ctx.user.id);
-    if (existingMembership) {
-      throw new TRPCError({ code: "CONFLICT", message: "This user already has an active bank environment." });
-    }
-    const normalizedSlug = normalizeBankSlug(input.bankSlug);
-    if (normalizedSlug.length < 2) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "Use at least two letters or numbers in the workspace address." });
-    }
-    const db = await getDb();
-    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
-    const slugExists = await db.select({ id: banks.id }).from(banks).where(eq(banks.slug, normalizedSlug)).limit(1);
-    if (slugExists[0]) throw new TRPCError({ code: "CONFLICT", message: "That bank workspace address is already in use." });
-
-    await db.transaction(async (tx) => {
-      await tx.insert(banks).values({ name: input.bankName, slug: normalizedSlug });
-      const created = await tx.select({ id: banks.id }).from(banks).where(eq(banks.slug, normalizedSlug)).limit(1);
-      const bankId = created[0]?.id;
-      if (!bankId) throw new Error("Bank environment could not be created");
-      await tx.insert(bankMemberships).values({ bankId, userId: ctx.user.id, role: "bank_owner", status: "active" });
-      await tx.insert(agentConfigs).values({
-        bankId,
-        agentName: `${input.bankName} Assistant`,
-        welcomeMessage: `Hello, I'm ${input.bankName}'s AI banking assistant. How can I help you today?`,
-        description: `${input.bankName}'s always-on customer-support assistant, connected only to approved bank systems.`,
-        supportedLanguages: "English",
-        customerTone: "Warm, clear and reassuring",
-        updatedByUserId: ctx.user.id,
-      });
-      await tx.insert(integrationConnections).values([
-        { bankId, kind: "core_banking", status: "pending", endpointLabel: "Core Banking", permissions: "Not configured", updatedByUserId: ctx.user.id },
-        { bankId, kind: "crm_live_agent", status: "pending", endpointLabel: "Live Agent Routing", permissions: "Not configured", updatedByUserId: ctx.user.id },
-        { bankId, kind: "web_banking", status: "pending", endpointLabel: "Web Banking", permissions: "Not configured", updatedByUserId: ctx.user.id },
-        { bankId, kind: "mobile_banking", status: "pending", endpointLabel: "Mobile Banking", permissions: "Not configured", updatedByUserId: ctx.user.id },
-      ]);
-      await tx.insert(channelDeployments).values([
-        { bankId, channel: "web_banking", enabled: false, status: "pending", updatedByUserId: ctx.user.id },
-        { bankId, channel: "mobile_banking", enabled: false, status: "pending", updatedByUserId: ctx.user.id },
-      ]);
-      await tx.insert(deploymentReleases).values({ bankId, environment: "sandbox", status: "ready", deployedByUserId: ctx.user.id, deployedAt: new Date() });
-      await tx.insert(auditEvents).values({ bankId, actorUserId: ctx.user.id, action: "Created bank environment", module: "Onboarding", resourceType: "bank", resourceId: String(bankId), detail: input.bankName });
+  })).mutation(async () => {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Bank environments are created by Qorebox/FinCare administrators. Ask your organization administrator to assign your portal access.",
     });
-    return { success: true };
   }),
 
   agent: router({
@@ -114,7 +79,7 @@ export const bankPortalRouter = router({
     }),
     save: protectedProcedure.input(configInput).mutation(async ({ ctx, input }) => {
       const bank = await requireBankContext(ctx.user.id);
-      requireOneOfRoles(bank.bankRole, ["bank_owner", "bank_admin"]);
+      requireOneOfRoles(bank.bankRole, ["bank_owner", "organization_admin", "bank_admin", "ai_manager"]);
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       const existing = await db.select({ id: agentConfigs.id }).from(agentConfigs).where(eq(agentConfigs.bankId, bank.bankId)).limit(1);
