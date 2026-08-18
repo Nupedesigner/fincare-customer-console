@@ -4,6 +4,7 @@ import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
+import { getSignInActivityDetails } from "../profileSecurity";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -47,6 +48,18 @@ export function registerOAuthRoutes(app: Express) {
         loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
         lastSignedIn: new Date(),
       });
+
+      try {
+        const persistedUser = await db.getUserByOpenId(userInfo.openId);
+        if (persistedUser) {
+          await db.recordUserSignInActivity({
+            userId: persistedUser.id,
+            ...getSignInActivityDetails(req, userInfo.loginMethod ?? userInfo.platform ?? "Managed identity", "oauth"),
+          });
+        }
+      } catch (activityError) {
+        console.error("[OAuth] Unable to record sign-in activity", activityError);
+      }
 
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {
         name: userInfo.name || "",

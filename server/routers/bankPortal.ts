@@ -14,11 +14,12 @@ import {
   knowledgeItems,
   users,
 } from "../../drizzle/schema";
-import { getActiveBankForUser, getDb, writeBankAuditEvent } from "../db";
+import { getActiveBankForUser, getDb, getProfilePreferences, getUserSignInActivities, saveProfilePreferences, writeBankAuditEvent } from "../db";
 import { invokeLLM } from "../_core/llm";
 import { storagePut } from "../storage";
 import { normalizeBankSlug } from "../../shared/bankSlug";
 import { protectedProcedure, router } from "../_core/trpc";
+import { DEFAULT_PROFILE_PREFERENCES, getManagedDeviceDetails } from "../profileSecurity";
 
 const bankRoleSchema = z.enum([
   "bank_owner",
@@ -62,6 +63,39 @@ const administrationStatusSchema = z.enum(["draft", "pending", "ready", "active"
 
 export const bankPortalRouter = router({
   context: protectedProcedure.query(async ({ ctx }) => getActiveBankForUser(ctx.user.id) ?? null),
+
+  profile: router({
+    get: protectedProcedure.query(async ({ ctx }) => {
+      const [preferences, activities] = await Promise.all([
+        getProfilePreferences(ctx.user.id),
+        getUserSignInActivities(ctx.user.id),
+      ]);
+      return {
+        preferences: preferences ? {
+          emailDigest: preferences.emailDigest,
+          securityAlerts: preferences.securityAlerts,
+          productUpdates: preferences.productUpdates,
+          defaultWorkspace: preferences.defaultWorkspace,
+        } : DEFAULT_PROFILE_PREFERENCES,
+        activities,
+        currentSession: {
+          signInProvider: ctx.user.loginMethod ?? "Managed identity",
+          source: "managed_session" as const,
+          ...getManagedDeviceDetails(ctx.req.get("user-agent") ?? undefined),
+          createdAt: ctx.user.lastSignedIn,
+        },
+      };
+    }),
+    updatePreferences: protectedProcedure.input(z.object({
+      emailDigest: z.boolean(),
+      securityAlerts: z.boolean(),
+      productUpdates: z.boolean(),
+      defaultWorkspace: z.enum(["overview", "conversations", "analytics"]),
+    })).mutation(async ({ ctx, input }) => {
+      await saveProfilePreferences({ userId: ctx.user.id, ...input });
+      return { success: true };
+    }),
+  }),
 
   bootstrap: protectedProcedure.input(z.object({
     bankName: z.string().trim().min(2).max(160),

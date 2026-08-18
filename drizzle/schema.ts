@@ -12,6 +12,28 @@ export const users = mysqlTable("users", {
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
+export const userProfilePreferences = mysqlTable("user_profile_preferences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  emailDigest: boolean("emailDigest").default(true).notNull(),
+  securityAlerts: boolean("securityAlerts").default(true).notNull(),
+  productUpdates: boolean("productUpdates").default(false).notNull(),
+  defaultWorkspace: mysqlEnum("defaultWorkspace", ["overview", "conversations", "analytics"]).default("overview").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const userSignInActivities = mysqlTable("user_sign_in_activities", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  signInProvider: varchar("signInProvider", { length: 64 }).notNull(),
+  deviceLabel: varchar("deviceLabel", { length: 160 }).notNull(),
+  browser: varchar("browser", { length: 120 }).notNull(),
+  operatingSystem: varchar("operatingSystem", { length: 120 }).notNull(),
+  source: mysqlEnum("source", ["oauth", "managed_session"]).default("oauth").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
 export const banks = mysqlTable("banks", {
   id: int("id").autoincrement().primaryKey(),
   name: varchar("name", { length: 160 }).notNull(),

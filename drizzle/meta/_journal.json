@@ -22,6 +22,13 @@
       "when": 1786984186524,
       "tag": "0002_faulty_inertia",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1787028844142,
+      "tag": "0003_sloppy_santa_claus",
+      "breakpoints": true
     }
   ]
 }

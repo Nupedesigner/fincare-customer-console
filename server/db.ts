@@ -1,6 +1,6 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { auditEvents, bankMemberships, banks, InsertUser, users } from "../drizzle/schema";
+import { auditEvents, bankMemberships, banks, InsertUser, userProfilePreferences, userSignInActivities, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -87,6 +87,79 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getProfilePreferences(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(userProfilePreferences).where(eq(userProfilePreferences.userId, userId)).limit(1);
+  return result[0];
+}
+
+export async function saveProfilePreferences(input: {
+  userId: number;
+  emailDigest: boolean;
+  securityAlerts: boolean;
+  productUpdates: boolean;
+  defaultWorkspace: "overview" | "conversations" | "analytics";
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is unavailable");
+  await db.insert(userProfilePreferences).values(input).onDuplicateKeyUpdate({
+    set: {
+      emailDigest: input.emailDigest,
+      securityAlerts: input.securityAlerts,
+      productUpdates: input.productUpdates,
+      defaultWorkspace: input.defaultWorkspace,
+    },
+  });
+}
+
+export async function recordUserSignInActivity(input: {
+  userId: number;
+  signInProvider: string;
+  deviceLabel: string;
+  browser: string;
+  operatingSystem: string;
+  source: "oauth" | "managed_session";
+}) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot record sign-in activity: database not available");
+    return;
+  }
+  await db.insert(userSignInActivities).values(input);
+}
+
+export async function getUserSignInActivities(userId: number, limit = 12) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(userSignInActivities).where(eq(userSignInActivities.userId, userId)).orderBy(desc(userSignInActivities.createdAt)).limit(limit);
+}
+
+export async function provisionQorebankDemoPortalUser() {
+  const db = await getDb();
+  if (!db) throw new Error("Database is unavailable");
+
+  const bankEnvironment = await db.select().from(banks).orderBy(asc(banks.id)).limit(1);
+  if (!bankEnvironment[0]) throw new Error("No administrator-provisioned non-production bank environment is available.");
+
+  const openId = "fincare_demo_qorebank_admin";
+  await upsertUser({
+    openId,
+    name: "FinCare Demo Administrator",
+    email: "demo-admin@fincare.example",
+    loginMethod: "FinCare demo access",
+    role: "admin",
+  });
+  const user = await getUserByOpenId(openId);
+  if (!user) throw new Error("Unable to prepare the Qorebank demo session.");
+
+  const membership = await db.select({ id: bankMemberships.id }).from(bankMemberships).where(and(eq(bankMemberships.bankId, bankEnvironment[0].id), eq(bankMemberships.userId, user.id))).limit(1);
+  if (!membership[0]) {
+    await db.insert(bankMemberships).values({ bankId: bankEnvironment[0].id, userId: user.id, role: "bank_admin", status: "active" });
+  }
+  return user;
 }
 
 export async function getActiveBankForUser(userId: number) {

@@ -7,6 +7,7 @@ import { SignJWT, jwtVerify } from "jose";
 import type { User } from "../../drizzle/schema";
 import * as db from "../db";
 import { ENV } from "./env";
+import { getSignInActivityDetails } from "../profileSecurity";
 import type {
   ExchangeTokenRequest,
   ExchangeTokenResponse,
@@ -288,6 +289,7 @@ class SDKServer {
     const sessionUserId = session.openId;
     const signedInAt = new Date();
     let user = await db.getUserByOpenId(sessionUserId);
+    const isFirstManagedSession = !user;
 
     // If user not in DB, sync from OAuth server automatically
     if (!user) {
@@ -309,6 +311,17 @@ class SDKServer {
 
     if (!user) {
       throw ForbiddenError("User not found");
+    }
+
+    if (isFirstManagedSession) {
+      try {
+        await db.recordUserSignInActivity({
+          userId: user.id,
+          ...getSignInActivityDetails(req, user.loginMethod ?? "Managed identity", "managed_session"),
+        });
+      } catch (activityError) {
+        console.error("[Auth] Unable to record managed sign-in activity", activityError);
+      }
     }
 
     await db.upsertUser({
