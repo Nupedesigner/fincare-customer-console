@@ -84,7 +84,8 @@ export const knowledgeItems = mysqlTable("knowledge_items", {
 export const integrationConnections = mysqlTable("integration_connections", {
   id: int("id").autoincrement().primaryKey(),
   bankId: int("bankId").notNull(),
-  kind: mysqlEnum("kind", ["core_banking", "crm_live_agent", "web_banking", "mobile_banking"]).notNull(),
+  environment: mysqlEnum("environment", ["sandbox", "production"]).default("sandbox").notNull(),
+  kind: mysqlEnum("kind", ["core_banking", "customer_api", "account_api", "transaction_api", "loan_api", "card_api", "payment_api", "custom_financial_api", "crm_live_agent", "web_banking", "mobile_banking"]).notNull(),
   status: mysqlEnum("status", ["pending", "testing", "connected", "error", "disabled"]).default("pending").notNull(),
   endpointLabel: varchar("endpointLabel", { length: 255 }).notNull(),
   permissions: text("permissions").notNull(),
@@ -92,6 +93,20 @@ export const integrationConnections = mysqlTable("integration_connections", {
   updatedByUserId: int("updatedByUserId").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const developerApiKeys = mysqlTable("developer_api_keys", {
+  id: int("id").autoincrement().primaryKey(),
+  bankId: int("bankId").notNull(),
+  environment: mysqlEnum("environment", ["sandbox", "production"]).default("sandbox").notNull(),
+  name: varchar("name", { length: 160 }).notNull(),
+  scopes: text("scopes").notNull(),
+  keyLast4: varchar("keyLast4", { length: 4 }).notNull(),
+  secretHash: varchar("secretHash", { length: 128 }).notNull(),
+  status: mysqlEnum("status", ["active", "revoked"]).default("active").notNull(),
+  createdByUserId: int("createdByUserId").notNull(),
+  revokedAt: timestamp("revokedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export const channelDeployments = mysqlTable("channel_deployments", {
@@ -145,7 +160,8 @@ export const auditEvents = mysqlTable("audit_events", {
 export const administrationRecords = mysqlTable("administration_records", {
   id: int("id").autoincrement().primaryKey(),
   bankId: int("bankId").notNull(),
-  module: mysqlEnum("module", ["faq", "product", "sdk", "webhook", "environment", "api_log", "queue", "escalation", "organization"]).notNull(),
+  environment: mysqlEnum("environment", ["sandbox", "production"]).default("sandbox").notNull(),
+  module: mysqlEnum("module", ["faq", "product", "sdk", "webhook", "environment", "api_log", "queue", "escalation", "organization", "application", "api_key", "oauth", "api_documentation", "sandbox", "ai_model", "ai_prompt", "ai_capability", "guardrail", "ai_evaluation", "ai_usage", "knowledge_base", "policy", "support_documentation", "rag_configuration", "rule", "monitoring_alert", "security_event", "secret", "access_permission", "notification", "developer_setting", "api_setting"]).notNull(),
   title: varchar("title", { length: 255 }).notNull(),
   status: mysqlEnum("status", ["draft", "pending", "ready", "active", "review", "disabled", "archived"]).default("draft").notNull(),
   detail: text("detail"),

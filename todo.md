@@ -17,3 +17,22 @@
 - [x] Bind the non-production demo session to a deterministic bank environment and display that environment accurately.
 - [x] Re-verify the authenticated Profile & access flow after the access-path refinements.
 - [x] Align the portal-shell profile summary with the authenticated FinCare demo user.
+- [x] Audit every remaining requirement in the Customer & Developer Console specification against the existing portal.
+- [x] Replace bank-specific customer-console terminology and top-level navigation with the specified Customer & Developer Console structure.
+- [x] Implement the specified integrations, developer, AI platform, knowledge, rules, monitoring, security, organization, and settings experiences.
+- [x] Refine the dashboard around environment health, integration health, API activity, applications, AI health, alerts, and recent activity.
+- [x] Add regression coverage and validate all revised customer-console workflows before checkpointing.
+- [x] Remove remaining bank-specific names from active customer-console metadata and visible chrome.
+- [x] Replace generic or toast-only customer-console actions with persistently configurable integration, developer, security, and settings workflows.
+- [x] Drive dashboard health, usage, and activity indicators from tenant and environment records instead of static demo constants.
+- [x] Add targeted regression coverage for new customer-console procedures and critical action flows.
+- [x] Implement dedicated persisted workflows for remaining Developers, Security, and Settings controls that require product-specific behavior.
+- [x] Complete dashboard usage and readiness indicators with tenant- and environment-backed records.
+- [x] Add critical-path regression coverage for organization role changes, environment-scoped resource actions, and remaining security/settings workflows.
+- [x] Implement dedicated persisted OAuth, webhook, and SDK configuration workflows for Developers.
+- [x] Implement dedicated Security and Settings mutation flows for product-specific controls and verify them in the browser.
+- [x] Add focused regression coverage for the remaining developer, security, settings, and organization role-change console flows.
+- [x] Implement dedicated product-specific General, Developer, API, and Environment Settings mutation flows.
+- [x] Add focused regression tests for webhook creation, SDK configuration, notification routing, and active-console organization role changes.
+- [x] Implement setting-specific General, Developer, API, and Environment configuration forms and validation.
+- [x] Verify all four dedicated Settings panels and their persisted actions in the authenticated browser session.

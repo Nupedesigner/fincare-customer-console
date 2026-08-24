@@ -1,0 +1,2 @@
+ALTER TABLE `administration_records` ADD `environment` enum('sandbox','production') DEFAULT 'sandbox' NOT NULL;--> statement-breakpoint
+ALTER TABLE `integration_connections` ADD `environment` enum('sandbox','production') DEFAULT 'sandbox' NOT NULL;

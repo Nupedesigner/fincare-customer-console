@@ -7,6 +7,9 @@ import { AIChatBox, type Message as AIMessage } from "@/components/AIChatBox";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { needsBankEnvironment, normalizeBankSlug } from "@shared/bankSlug";
+import CustomerConsoleWorkspace, { type CustomerConsolePage } from "./CustomerConsoleWorkspace";
+import CustomerConsoleShell from "./CustomerConsoleShell";
+import { RiBook3Line, RiBookOpenLine, RiBuilding4Line, RiCodeBoxLine, RiCustomerService2Line, RiDashboard3Line, RiGitBranchLine, RiLinksLine, RiNotification3Line, RiPulseLine, RiRobot2Line, RiServerLine, RiSettings3Line, RiShieldCheckLine, RiUser3Line } from "@remixicon/react";
 import {
   Activity, AlertTriangle, ArrowUpRight, Bell, BookOpen, Bot, Check, CheckCircle2,
   ChevronDown, CircleHelp, Clock3, Database, Download, FileText, Filter, Gauge,
@@ -19,7 +22,7 @@ import { toast } from "sonner";
 
 type PortalPage = string;
 
-type NavItem = { label: PortalPage; icon: typeof LayoutDashboard; group?: string };
+type NavItem = { label: PortalPage; icon: React.ComponentType<{ className?: string }>; group?: string };
 
 type ConnectionStatus = "Connected" | "Pending" | "Error" | "Testing";
 
@@ -27,31 +30,16 @@ const logo = "/manus-storage/fincare-logo_e9f576ee.svg";
 const iconLogo = "/manus-storage/fincare-icon_86da598f.svg";
 
 const navigation: NavItem[] = [
-  { label: "Overview", icon: LayoutDashboard, group: "DASHBOARD" },
-  { label: "My AI Agent", icon: Bot, group: "AI AGENT" },
-  { label: "Personality", icon: Sparkles },
-  { label: "System Prompt", icon: FileText },
-  { label: "Capabilities", icon: SlidersHorizontal },
-  { label: "Documents", icon: BookOpen, group: "KNOWLEDGE" },
-  { label: "FAQs", icon: CircleHelp },
-  { label: "Products", icon: Database },
-  { label: "API Connection", icon: Network, group: "INTEGRATION" },
-  { label: "SDK", icon: PanelTop },
-  { label: "Webhooks", icon: Link2 },
-  { label: "Environments", icon: Globe2 },
-  { label: "API Logs", icon: ListFilter },
-  { label: "Active Conversations", icon: MessageCircle, group: "CONVERSATIONS" },
-  { label: "Resolved Conversations", icon: CheckCircle2 },
-  { label: "Escalated Conversations", icon: AlertTriangle },
-  { label: "Queues", icon: Headphones, group: "LIVE AGENTS" },
-  { label: "Escalations", icon: Users },
-  { label: "Test Console", icon: Play, group: "VALIDATE & DEPLOY" },
-  { label: "Deploy FinCare", icon: Rocket },
-  { label: "Analytics", icon: Gauge, group: "ANALYTICS" },
-  { label: "Team", icon: Users, group: "SETTINGS" },
-  { label: "Profile", icon: UserCog },
-  { label: "Security & Compliance", icon: ShieldCheck },
-  { label: "Organization", icon: Settings2 },
+  { label: "Dashboard", icon: RiDashboard3Line },
+  { label: "Integrations", icon: RiLinksLine },
+  { label: "Developers", icon: RiCodeBoxLine },
+  { label: "AI Platform", icon: RiRobot2Line },
+  { label: "Knowledge", icon: RiBook3Line },
+  { label: "Rules", icon: RiGitBranchLine },
+  { label: "Monitoring", icon: RiPulseLine },
+  { label: "Security", icon: RiShieldCheckLine },
+  { label: "Organization", icon: RiBuilding4Line },
+  { label: "Settings", icon: RiSettings3Line },
 ];
 
 const trend = [
@@ -416,7 +404,9 @@ function ProfileWorkspace() {
   return <div className="app-enter space-y-6"><PageHeader eyebrow="ACCOUNT" title="Profile & access"><div className="mt-4"><Status value="Protected" /></div></PageHeader><section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]"><article className="fincare-card p-6"><div className="flex items-center gap-4"><span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eaf3ff] text-lg font-bold text-[#0866f5]">{initials}</span><div><h2 className="text-lg font-bold text-[#071a35]">{user?.name ?? "Bank user"}</h2><p className="mt-1 text-sm text-slate-500">{user?.email ?? "No work email returned"}</p></div></div><dl className="mt-7 divide-y divide-[#eef3fa] border-y border-[#eef3fa] text-sm"><div className="flex justify-between gap-4 py-4"><dt className="text-slate-500">Portal role</dt><dd className="font-semibold text-[#253b5a]">Authenticated bank user</dd></div><div className="flex justify-between gap-4 py-4"><dt className="text-slate-500">Sign-in method</dt><dd className="font-semibold text-[#253b5a]">{user?.loginMethod ?? "Bank-managed identity"}</dd></div><div className="flex justify-between gap-4 py-4"><dt className="text-slate-500">Last authenticated</dt><dd className="font-semibold text-[#253b5a]">{user?.lastSignedIn ? new Date(user.lastSignedIn).toLocaleString() : "Current session"}</dd></div></dl></article><aside className="fincare-evidence-well rounded-xl p-6"><div className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-[#078bb5]" /><div><p className="text-sm font-bold text-[#071a35]">Session controls</p><p className="text-[11px] font-semibold text-[#078bb5]">● Managed and auditable</p></div></div><button onClick={signOut} disabled={signingOut} className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#071a35] px-4 py-3 text-sm font-semibold text-white hover:bg-[#102c52] disabled:opacity-60">{signingOut && <Loader2 className="h-4 w-4 animate-spin" />}{signingOut ? "Signing out..." : "Sign out"}</button></aside></section><section className="grid gap-5 xl:grid-cols-[minmax(0,.88fr)_minmax(0,1.12fr)]"><form onSubmit={(event) => { event.preventDefault(); savePreferences.mutate({ emailDigest, securityAlerts, productUpdates, defaultWorkspace }); }} className="fincare-card p-6"><div className="flex items-start justify-between gap-4"><div><p className="metric-label">PERSONAL SETTINGS</p><h2 className="mt-1 text-lg font-bold text-[#071a35]">Profile preferences</h2></div><Settings2 className="h-5 w-5 text-[#0866f5]" /></div><p className="mt-3 text-xs leading-5 text-slate-500">Choose the operational updates you receive and where FinCare opens by default. Identity and access controls remain managed by your bank.</p><div className="mt-6 space-y-4"><label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[#e4edf8] bg-[#fbfdff] p-3.5"><input type="checkbox" checked={emailDigest} onChange={(event) => setEmailDigest(event.target.checked)} className="mt-0.5 h-4 w-4 accent-[#0866f5]" /><span><span className="block text-sm font-semibold text-[#253b5a]">Operational email digest</span><span className="mt-1 block text-xs leading-5 text-slate-500">Receive a concise summary of your FinCare activity.</span></span></label><label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[#e4edf8] bg-[#fbfdff] p-3.5"><input type="checkbox" checked={securityAlerts} onChange={(event) => setSecurityAlerts(event.target.checked)} className="mt-0.5 h-4 w-4 accent-[#0866f5]" /><span><span className="block text-sm font-semibold text-[#253b5a]">Security alerts</span><span className="mt-1 block text-xs leading-5 text-slate-500">Be notified when a managed sign-in is recorded for this profile.</span></span></label><label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[#e4edf8] bg-[#fbfdff] p-3.5"><input type="checkbox" checked={productUpdates} onChange={(event) => setProductUpdates(event.target.checked)} className="mt-0.5 h-4 w-4 accent-[#0866f5]" /><span><span className="block text-sm font-semibold text-[#253b5a]">Product and workflow updates</span><span className="mt-1 block text-xs leading-5 text-slate-500">Receive updates about new FinCare capabilities and workflow changes.</span></span></label><label className="block"><span className="metric-label">DEFAULT PORTAL VIEW</span><select value={defaultWorkspace} onChange={(event) => setDefaultWorkspace(event.target.value as typeof defaultWorkspace)} className="mt-2 w-full rounded-lg border border-[#dce7f7] bg-white px-3 py-2.5 text-sm font-medium text-[#253b5a] outline-none focus:border-[#0866f5]"><option value="overview">Overview</option><option value="conversations">Conversations</option><option value="analytics">Analytics</option></select></label></div><button disabled={savePreferences.isPending || profileQuery.isLoading} className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#0866f5] px-4 py-2.5 text-xs font-semibold text-white hover:bg-[#075ddd] disabled:opacity-60"><Save className="h-3.5 w-3.5" />{savePreferences.isPending ? "Saving preferences..." : "Save preferences"}</button></form><article className="fincare-card overflow-hidden"><div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#eef3fa] px-6 py-5"><div><p className="metric-label">SIGN-IN SECURITY</p><h2 className="mt-1 text-lg font-bold text-[#071a35]">Recent sign-in activity</h2><p className="mt-2 text-xs leading-5 text-slate-500">Device attributes are detected from the browser. FinCare does not store your location in this view.</p></div><Status value={activities.length ? `${activities.length} Recorded` : "Current session"} /></div><div className="divide-y divide-[#eef3fa]"><div className="flex gap-3 px-6 py-4"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#eaf8fd] text-[#078bb5]"><Monitor className="h-4 w-4" /></span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-[#253b5a]">Current authenticated session</p><span className="text-[11px] font-semibold text-[#078bb5]">● Active now</span></div><p className="mt-1 text-xs text-slate-500">{profileQuery.data?.currentSession.browser ?? "Browser details loading"} · {profileQuery.data?.currentSession.operatingSystem ?? "Managed device"}</p><p className="mt-1 text-[11px] text-slate-400">{profileQuery.data?.currentSession.createdAt ? new Date(profileQuery.data.currentSession.createdAt).toLocaleString() : "Authenticated managed session"} · {profileQuery.data?.currentSession.signInProvider ?? "Managed identity"}</p></div></div>{profileQuery.isLoading && <div className="px-6 py-6 text-sm text-slate-500">Loading managed sign-in history...</div>}{!profileQuery.isLoading && activities.map((activity) => <div key={activity.id} className="flex gap-3 px-6 py-4"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f4f8ff] text-[#0866f5]">{activity.deviceLabel.toLowerCase().includes("mobile") ? <Smartphone className="h-4 w-4" /> : <Monitor className="h-4 w-4" />}</span><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-[#253b5a]">{activity.deviceLabel}</p><span className="text-[11px] font-semibold text-[#4b6386]">Recorded sign-in</span></div><p className="mt-1 text-xs text-slate-500">{activity.browser} · {activity.operatingSystem}</p><p className="mt-1 text-[11px] text-slate-400">{new Date(activity.createdAt).toLocaleString()} · {activity.signInProvider}</p></div></div>)}{!profileQuery.isLoading && !activities.length && <div className="px-6 py-6 text-xs leading-5 text-slate-500">New managed identity sign-ins will appear here with their detected device details.</div>}</div></article></section></div>;
 }
 
-function BankWorkspace({ page, onPage }: { page: PortalPage; onPage: (page: PortalPage) => void }) {
+function BankWorkspace({ page, onPage, environment = "sandbox" }: { page: PortalPage; onPage: (page: PortalPage) => void; environment?: "sandbox" | "production" }) {
+  const customerConsolePages: CustomerConsolePage[] = ["Dashboard", "Integrations", "Developers", "AI Platform", "Knowledge", "Rules", "Monitoring", "Security", "Organization", "Settings"];
+  if (customerConsolePages.includes(page as CustomerConsolePage)) return <CustomerConsoleWorkspace page={page as CustomerConsolePage} environment={environment} onPage={onPage as (next: CustomerConsolePage) => void} />;
   if (page === "My AI Agent") return <AgentWorkspace />;
   if (page === "Documents") return <BankKnowledgeWorkspace />;
   if (page === "API Connection") return <BankIntegrationsWorkspace />;
@@ -430,16 +420,17 @@ function BankWorkspace({ page, onPage }: { page: PortalPage; onPage: (page: Port
   if (page === "Security & Compliance") return <BankSecurityWorkspace />;
   if (["FAQs", "Products", "SDK", "Webhooks", "Environments", "API Logs", "Queues", "Escalations", "Organization"].includes(page)) return <FunctionalAdministrationWorkspace page={page} />;
   if (["Personality", "System Prompt", "Capabilities", "Resolved Conversations", "Escalated Conversations"].includes(page)) return <AdministrationWorkspace page={page} />;
-  return <BankOverview onPage={onPage} />;
+  return <CustomerConsoleWorkspace page="Dashboard" environment={environment} onPage={onPage as (next: CustomerConsolePage) => void} />;
 }
 
 function PortalShell() {
   const query = new URLSearchParams(window.location.search);
   const requestedPage = query.get("view") as PortalPage | null;
-  const initialPage = requestedPage && navigation.some((item) => item.label === requestedPage) ? requestedPage : "Overview";
+  const initialPage = requestedPage ?? "Dashboard";
   const [page, setPage] = useState<PortalPage>(initialPage);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [period, setPeriod] = useState("30 Days");
+  const [environment, setEnvironment] = useState<"sandbox" | "production">("sandbox");
   const { logout, user } = useAuth();
   const bankContext = trpc.bankPortal.context.useQuery(undefined, { retry: false });
   const bankName = bankContext.data?.bankName ?? "Assigned bank";
@@ -487,7 +478,7 @@ function PortalShell() {
     document.addEventListener("click", outside);
     return () => { trigger.removeEventListener("click", toggle); trigger.removeEventListener("keydown", activate); menu.removeEventListener("click", onMenuClick); document.removeEventListener("click", outside); menu.remove(); };
   }, [bankName, logout, user?.loginMethod, user?.name]);
-  const choose = (next: PortalPage) => { setPage(next); setSidebarOpen(false); window.history.replaceState(null, "", next === "Overview" ? "/" : `/?view=${encodeURIComponent(next)}`); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const choose = (next: PortalPage) => { setPage(next); setSidebarOpen(false); window.history.replaceState(null, "", next === "Dashboard" ? "/" : `/?view=${encodeURIComponent(next)}`); window.scrollTo({ top: 0, behavior: "smooth" }); };
   return <div className="min-h-screen bg-[#f4f8ff] lg:flex"><>{sidebarOpen && <button aria-label="Close navigation" onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-30 bg-[#071a35]/45 lg:hidden" />}</><aside className={`fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col bg-[#071a35] transition-transform duration-200 lg:sticky lg:inset-y-auto lg:top-0 lg:h-screen lg:shrink-0 lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}><div className="flex h-[82px] items-center justify-between border-b border-white/[.1] px-5"><img src={logo} alt="FinCare" className="h-[38px] w-auto max-w-[145px] object-contain" /><button onClick={() => setSidebarOpen(false)} aria-label="Close navigation" className="rounded-md p-1.5 text-[#d2def4] hover:bg-white/[.08] lg:hidden"><X className="h-5 w-5" /></button></div><div className="flex-1 overflow-y-auto px-3 py-5">{navigation.map((item) => { const Icon = item.icon; return <div key={item.label} className={item.group ? "mt-6 first:mt-0" : ""}>{item.group && <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.12em] text-[#7e95b9]">{item.group}</p>}<button onClick={() => choose(item.label)} className={`nav-item ${page === item.label ? "nav-item-active" : ""}`}><Icon className="h-4 w-4 shrink-0" /><span className="truncate">{item.label}</span>{item.label === "Live Agents" && <span className="ml-auto rounded bg-white/[.13] px-1.5 py-0.5 text-[10px] text-white">12</span>}</button></div>; })}</div><div className="m-3 rounded-xl border border-white/[.1] bg-white/[.055] p-3"><div className="flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0866f5]"><ShieldCheck className="h-4 w-4 text-white" /></span><div><p className="text-[11px] font-semibold text-white">Qorebank tenant</p><p className="text-[10px] text-[#9db4d6]">Bank data isolated</p></div></div></div><div className="border-t border-white/[.1] px-4 py-4 text-[10px] font-medium text-[#8fa7ca]">© 2026 FinCare<br /><span className="text-[#627da6]">Finance. Care. Always.</span></div></aside><main className="min-h-screen flex-1"><header className="sticky top-0 z-20 flex h-[82px] items-center gap-3 border-b border-[#dbe5f4] bg-white/95 px-4 backdrop-blur-sm sm:px-6 lg:px-8"><button onClick={() => setSidebarOpen(true)} aria-label="Open navigation" className="rounded-lg border border-[#dce7f7] p-2 text-[#385373] hover:bg-[#f4f8ff] lg:hidden"><Menu className="h-5 w-5" /></button><div className="hidden min-w-0 sm:block"><p className="text-[11px] font-medium text-slate-500">Qorebank</p><button onClick={() => toast("Environment selector", { description: "Qorebank Production is the active bank environment." })} className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold text-[#16734f]">● Production <ChevronDown className="h-3.5 w-3.5" /></button></div><div className="hidden h-7 w-px bg-[#dbe5f4] sm:block" /><div className="hidden min-w-[180px] max-w-[420px] flex-1 items-center gap-2 rounded-lg border border-[#dce7f7] bg-[#f8fbff] px-3 py-2 md:flex"><Search className="h-4 w-4 text-[#8ba0bd]" /><input aria-label="Search Qorebank portal" placeholder="Search Qorebank settings, knowledge or conversations..." className="w-full bg-transparent text-xs text-[#071a35] outline-none placeholder:text-[#98a9bf]" /></div><div className="ml-auto flex items-center gap-1 sm:gap-2"><button onClick={() => toast("Notifications", { description: "Qorebank operational notifications are available here." })} aria-label="Notifications" className="relative rounded-lg p-2 text-[#45607f] hover:bg-[#f4f8ff]"><Bell className="h-5 w-5" /><span className="absolute right-2 top-1.5 h-1.5 w-1.5 rounded-full bg-[#16b8e8]" /></button><button onClick={() => toast("Help centre", { description: "Open Qorebank FinCare implementation guidance." })} aria-label="Help centre" className="hidden rounded-lg p-2 text-[#45607f] hover:bg-[#f4f8ff] sm:block"><CircleHelp className="h-5 w-5" /></button><div className="ml-1 flex items-center gap-2 border-l border-[#dbe5f4] pl-3"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#eaf3ff] text-xs font-bold text-[#0866f5]">AN</span><div className="hidden pr-1 md:block"><p className="text-xs font-semibold text-[#071a35]">Amara Nwosu</p><p className="text-[10px] text-slate-500">Qorebank Admin</p></div></div></div></header><div className="px-4 py-6 sm:px-6 lg:px-8"><div className="mx-auto max-w-[1520px]"><div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div className="text-xs font-medium text-slate-500"><span className="font-semibold text-[#071a35]">FinCare Bank Portal</span><span className="mx-2 text-[#c8d5e7]">/</span>{page}</div><div className="flex items-center rounded-lg border border-[#d7e4f6] bg-white p-1">{["Today", "7 Days", "30 Days"].map((option) => <button key={option} onClick={() => setPeriod(option)} className={`rounded-md px-3 py-1.5 text-[11px] font-semibold transition ${period === option ? "bg-[#0866f5] text-white shadow-sm" : "text-[#547092] hover:bg-[#f4f8ff]"}`}>{option}</button>)}<button onClick={() => toast("Custom date range", { description: "Choose a Qorebank reporting period." })} className="ml-1 inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold text-[#547092] hover:bg-[#f4f8ff]"><Clock3 className="h-3 w-3" />Custom</button></div></div><BankWorkspace page={page} onPage={choose} /></div></div></main></div>;
 }
 
@@ -544,5 +535,5 @@ export default function Home() {
   if (!user) return <AccessScreen />;
   if (contextQuery.isLoading) return <div className="flex min-h-screen items-center justify-center bg-[#f4f8ff]"><Loader2 className="h-6 w-6 animate-spin text-[#0866f5]" /></div>;
   if (needsBankEnvironment(contextQuery.data, contextQuery.isError)) return <AwaitingBankAssignment />;
-  return <PortalShell />;
+  return <CustomerConsoleShell />;
 }
