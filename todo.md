@@ -36,3 +36,6 @@
 - [x] Add focused regression tests for webhook creation, SDK configuration, notification routing, and active-console organization role changes.
 - [x] Implement setting-specific General, Developer, API, and Environment configuration forms and validation.
 - [x] Verify all four dedicated Settings panels and their persisted actions in the authenticated browser session.
+- [x] Map the prior Overview dashboard information in the supplied reference to the current Customer & Developer Console dashboard.
+- [x] Restore the useful overview greeting, action, operational-summary, and AI-context sections without removing the current environment-health dashboard.
+- [x] Validate the combined dashboard on desktop and mobile before checkpointing.
