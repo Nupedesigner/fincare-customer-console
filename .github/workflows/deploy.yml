@@ -1,0 +1,69 @@
+name: Deploy Console
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment approved for this release
+        type: choice
+        required: true
+        default: sandbox
+        options: [sandbox, production]
+
+concurrency:
+  group: deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out approved commit
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install, test, and build
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm check
+          pnpm test
+          pnpm build
+
+      - name: Require configured deployment hook
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+        run: |
+          if [ -z "$DEPLOY_WEBHOOK_URL" ]; then
+            echo "DEPLOY_WEBHOOK_URL is not configured for the selected GitHub Environment."
+            echo "Add a protected deployment-hook secret before running an external deployment."
+            exit 1
+          fi
+
+      - name: Trigger approved deployment target
+        env:
+          DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
+          DEPLOY_WEBHOOK_TOKEN: ${{ secrets.DEPLOY_WEBHOOK_TOKEN }}
+          TARGET_ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --request POST "$DEPLOY_WEBHOOK_URL" \
+            --header "Content-Type: application/json" \
+            --header "Authorization: Bearer $DEPLOY_WEBHOOK_TOKEN" \
+            --data "{\"repository\":\"${{ github.repository }}\",\"sha\":\"${{ github.sha }}\",\"ref\":\"${{ github.ref }}\",\"environment\":\"$TARGET_ENVIRONMENT\"}"

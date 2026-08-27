@@ -1,0 +1,56 @@
+name: Verify Console
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Type-check, test, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check TypeScript
+        run: pnpm check
+
+      - name: Run regression tests
+        run: pnpm test
+
+      - name: Build production bundle
+        run: pnpm build
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v4
+        with:
+          name: fincare-customer-console-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
