@@ -45,4 +45,5 @@
 - [x] Assess current project scripts, deployment capabilities, and documentation inputs for repository automation.
 - [x] Add GitHub Actions checks and a safe deployment-preparation workflow for the private repository.
 - [x] Write a comprehensive README covering architecture, local setup, testing, database, environment, security, and deployment.
-- [ ] Validate the workflow and README, then commit and push the repository updates.
+- [x] Validate the workflow and README, then commit and push the repository updates.
+- [x] Dry-validate the manual deployment workflow’s protected missing-secret behavior and reconfirm README alignment.
