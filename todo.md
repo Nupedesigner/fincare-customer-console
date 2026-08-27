@@ -39,6 +39,6 @@
 - [x] Map the prior Overview dashboard information in the supplied reference to the current Customer & Developer Console dashboard.
 - [x] Restore the useful overview greeting, action, operational-summary, and AI-context sections without removing the current environment-health dashboard.
 - [x] Validate the combined dashboard on desktop and mobile before checkpointing.
-- [ ] Verify the configured GitHub publishing access for the current FinCare console project.
-- [ ] Create the Fincare Customer Console repository and export the verified project state.
-- [ ] Confirm the repository URL and final export status.
+- [x] Verify the configured GitHub publishing access for the current FinCare console project.
+- [x] Create the Fincare Customer Console repository and export the verified project state.
+- [x] Confirm the repository URL and final export status.
