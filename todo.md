@@ -47,3 +47,5 @@
 - [x] Write a comprehensive README covering architecture, local setup, testing, database, environment, security, and deployment.
 - [x] Validate the workflow and README, then commit and push the repository updates.
 - [x] Dry-validate the manual deployment workflow’s protected missing-secret behavior and reconfirm README alignment.
+- [x] Audit the tracked Fincare Customer Console repository for public-release risks and sensitive files.
+- [x] Change the Fincare Customer Console GitHub repository visibility to public and verify the result.
